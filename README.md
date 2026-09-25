@@ -3,7 +3,7 @@
 
 An interactive data visualisation dashboard exposing how Sydney's tree canopy, and therefore its heat, is distributed by wealth rather than ecology.
 
-**[→ View Live Demo](https://krishpykreme.github.io/shades-of-inequality/shades_of_inequality.html)** &nbsp;|&nbsp; Built for DECO3100, University of Sydney
+**[→ View Live Demo](https://krishpykreme.github.io/shades-of-inequality/)** &nbsp;|&nbsp; Built for DECO3100, University of Sydney
 
 ---
 
