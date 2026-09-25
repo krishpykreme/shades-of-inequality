@@ -1,0 +1,1289 @@
+/*
+ * styles.css
+ * DECO3100 — Krishnendhu Remesh (KREM0023)
+ * Project: Shades of Inequality — Mapping Sydney's Urban Heat Divide
+ *
+ * This file contains all the custom styles for the dashboard.
+ * It is referenced by shades_of_inequality.html via:
+ *   <link rel="stylesheet" href="styles.css">
+ *
+ * Structure:
+ *   - CSS reset + root variables (colour palette, typography)
+ *   - Hero section (Section 1) — full-height NatGeo-style header
+ *   - Section layout — shared .section wrapper, eyebrow labels, headings
+ *   - Stat callouts, pullquotes, temp comparison cards (Sections 1–4)
+ *   - Chart containers (Section 4 — uses Chart.js canvas)
+ *   - Fade-in scroll animations — .fade-in / .visible classes used by main.js
+ *   - Map tab toggle buttons (Section 2 — Canopy / Heat / Wealth tabs)
+ *   - Budget calculator custom select styling (Section 6)
+ *   - Usability iteration 2 additions:
+ *       · Hero text shadow (legibility fix)
+ *       · LGA pulse animation on map click (boundary highlight)
+ *       · Slider thumb enlargement (affordance fix)
+ *       · Simulated future projection badge (Target mode indicator)
+ *       · Second map discovery prompt (scroll hint between Sections 2 and 5)
+ *       · Scroll progress dots (fixed right-side navigation indicator)
+ *   - Responsive breakpoints (600px mobile, 768px tablet, 900px small desktop)
+ *
+ * Font dependencies (loaded from Google Fonts in shades_of_inequality.html):
+ *   DM Serif Display — headings and hero title
+ *   DM Sans — body text, labels, UI elements
+ */
+
+ *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+ :root {
+   --green-dark: #1a3a2a;
+   --green-mid: #2d6a4f;
+   --green-light: #52b788;
+   --green-pale: #d8f3dc;
+   --heat-red: #c1440e;
+   --heat-orange: #e07a2f;
+   --heat-pale: #fde8d8;
+   --sand: #f7f3ed;
+   --ink: #1a1a1a;
+   --muted: #5a5a5a;
+   --rule: #d4cfc8;
+   --serif: 'DM Serif Display', Georgia, serif;
+   --sans: 'DM Sans', system-ui, sans-serif;
+ }
+
+ html { scroll-behavior: smooth; }
+
+ body {
+   font-family: var(--sans);
+   background: #fff;
+   color: var(--ink);
+   font-size: 17px;
+   line-height: 1.75;
+   overflow-x: hidden;
+ }
+
+ /* ── HERO SECTION (Section 1) ─────────────────────────────────────────────
+  Full-height NatGeo-style header. Background image set via --hero-bg CSS var
+  on the <section class="hero"> element in shades_of_inequality.html.
+  The gradient overlay darkens the image so white text stays legible (2.8/5
+  usability score prompted the overlay to be strengthened in iteration 2). ──
+    AESTHETIC RATIONALE (Criteria B):
+    Inspired by National Geographic's "Mind the Water Gap" editorial layout:
+    https://worldwatermap.nationalgeographic.org/
+    Key principles adopted:
+      1. Full-bleed background image with dark gradient overlay (left-to-right)
+         so text stays legible regardless of image content on the right.
+      2. Left-aligned text column (~50% width) creates strong editorial hierarchy
+         and lets the background image breathe on the right — NatGeo's signature move.
+      3. Oversized display type (clamp up to 8vw) fills vertical space dramatically,
+         matching the scale NatGeo uses for its chapter-opener spreads.
+      4. Eyebrow → hook italic → main title reading order mirrors NatGeo's
+         "kicker → deck → headline" editorial structure.
+      5. Subtitle line below the title (instead of above) grounds the section
+         and gives a clear entry point before the user scrolls.
+    The `--hero-bg` CSS variable is the single attachment point for a background image:
+    add  style="--hero-bg: url('your-photo.jpg')"  to the <section> tag to activate it.
+ */
+ .hero {
+   min-height: 100vh;
+   /* Fallback solid colour; replaced by image when --hero-bg is set */
+   background-color: #0d2218;
+   /* Background image via CSS custom property — set inline on the element */
+   background-image:
+     linear-gradient(
+       105deg,
+       rgba(5,12,8,0.85) 0%,
+       rgba(5,12,8,0.85) 48%,
+       rgba(5,12,8,0.45) 100%
+     ),
+     var(--hero-bg, none);
+   background-size: cover;
+   background-position: center right;
+   background-repeat: no-repeat;
+   /* Layout: left-align everything, content in the left ~55% */
+   display: flex;
+   flex-direction: column;
+   justify-content: flex-end;   /* anchor text toward the bottom third */
+   align-items: flex-start;
+   text-align: left;
+   padding: 6rem 5vw 5rem;
+   position: relative;
+   overflow: hidden;
+ }
+
+ /* Subtle bottom vignette to lift the scroll cue */
+ .hero::after {
+   content: '';
+   position: absolute;
+   bottom: 0; left: 0; right: 0;
+   height: 180px;
+   background: linear-gradient(to top, rgba(10,22,14,0.7) 0%, transparent 100%);
+   pointer-events: none;
+ }
+
+ /* Eyebrow: NatGeo uses a small all-caps label to place the work in context */
+ .hero-eyebrow {
+   font-family: var(--sans);
+   font-size: 11px;
+   font-weight: 600;
+   letter-spacing: 0.22em;
+   text-transform: uppercase;
+   color: var(--green-light);
+   margin-bottom: 1.25rem;
+   /* Soft background slab — NatGeo uses a translucent pill/bar for legibility */
+   background: rgba(0,0,0,0.30);
+   display: inline-block;
+   padding: 4px 10px;
+   border-radius: 3px;
+ }
+
+ /* Hook: italic serif deck line above the main title — smaller, humanising */
+ .hero-hook {
+   font-family: var(--serif);
+   font-size: clamp(1.25rem, 2.4vw, 2rem);
+   color: rgba(255,255,255,0.90);
+   line-height: 1.35;
+   margin-bottom: 1.25rem;
+   max-width: 26ch;
+   font-style: italic;
+   font-weight: 400;
+ }
+
+ /* Main title: NatGeo headline is display-scale, stacked, non-italic except accent word */
+ .hero h1 {
+   font-family: var(--serif);
+   font-size: clamp(4rem, 9vw, 8rem);   /* much larger than before */
+   color: #fff;
+   line-height: 0.95;
+   margin-bottom: 1.75rem;
+   max-width: 12ch;
+   letter-spacing: -0.01em;
+   font-weight: 400;                    /* DM Serif Display's natural weight */
+ }
+
+ /* Accent word ("Inequality") inherits italic + green — NatGeo uses colour to accent */
+ .hero h1 em {
+   font-style: italic;
+   color: var(--green-light);
+   display: block;                       /* forces it onto its own line, NatGeo-style */
+ }
+
+ /* Subtitle line below the title — NatGeo's "article deck" equivalent */
+ .hero-subtitle {
+   font-family: var(--sans);
+   font-size: clamp(0.95rem, 1.4vw, 1.15rem);
+   color: rgba(255,255,255,0.75);
+   font-weight: 400;
+   max-width: 46ch;
+   line-height: 1.6;
+   margin-bottom: 0;
+ }
+
+ /* Photo credit line — NatGeo always credits the photographer at bottom-right */
+ .hero-credit {
+   position: absolute;
+   bottom: 14px;
+   right: 16px;
+   font-size: 10px;
+   color: rgba(255,255,255,0.40);
+   font-family: var(--sans);
+   letter-spacing: 0.04em;
+   z-index: 2;
+ }
+
+ /* Scroll cue — moved to bottom-left to balance the credit on the right */
+ .scroll-cue {
+   position: absolute;
+   bottom: 2.5rem;
+   left: 5vw;
+   display: flex;
+   flex-direction: row;
+   align-items: center;
+   gap: 8px;
+   color: rgba(255,255,255,0.60);
+   font-size: 11px;
+   font-weight: 500;
+   letter-spacing: 0.14em;
+   text-transform: uppercase;
+   z-index: 2;
+   animation: bounceH 2s ease-in-out infinite;
+ }
+
+ .scroll-cue svg {
+   width: 18px;
+   height: 18px;
+   /* Rotate arrow to point right → down feels more editorial */
+ }
+
+ @keyframes bounceH {
+   0%, 100% { transform: translateY(0);   opacity: 0.55; }
+   50%       { transform: translateY(5px); opacity: 0.90; }
+ }
+
+ @media (max-width: 600px) {
+   .hero {
+     padding: 5rem 1.5rem 5rem;
+     justify-content: flex-end;
+   }
+   .hero h1 { font-size: clamp(3.5rem, 14vw, 5rem); }
+ }
+
+ /* Canopy compare cards — used in first content section */
+ .canopy-compare {
+   display: flex;
+   gap: 0;
+   width: 100%;
+   max-width: 600px;
+   border-radius: 16px;
+   overflow: hidden;
+   border: 1px solid rgba(255,255,255,0.15);
+ }
+
+ .canopy-col {
+   flex: 1;
+   padding: 1.5rem 1.25rem;
+   text-align: left;
+ }
+
+ .canopy-col.cool { background: rgba(82,183,136,1); }
+ .canopy-col.hot  { background: rgba(193,68,14,1); }
+
+ .canopy-label {
+   font-size: 10px;
+   font-weight: 600;
+   letter-spacing: 0.15em;
+   text-transform: uppercase;
+   margin-bottom: 0.5rem;
+   color: rgba(255,255,255,0.8);
+ }
+
+ .canopy-name {
+   font-family: var(--serif);
+   font-size: 1.4rem;
+   color: #fff;
+   line-height: 1.2;
+   margin-bottom: 0.75rem;
+   font-weight: 700;
+ }
+
+ .canopy-bar-wrap { height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; margin-bottom: 0.5rem; }
+ .canopy-bar { height: 100%; border-radius: 3px; }
+ .canopy-col.cool .canopy-bar { background: #fff; width: 44%; }
+ .canopy-col.hot  .canopy-bar { background: #ffcba4; width: 13%; }
+
+ .canopy-pct {
+   font-size: 2.8rem;
+   font-weight: 700;
+   line-height: 1;
+   color: #fff;
+ }
+
+ .canopy-sub {
+   font-size: 12px;
+   color: rgba(255,255,255,0.85);
+   margin-top: 4px;
+   font-weight: 500;
+ }
+
+ .divider-line {
+   width: 1px;
+   background: rgba(255,255,255,0.15);
+ }
+
+ /* ── SECTION LAYOUT ────────────────────────────────────────────────────────
+  .section — shared wrapper used by all content sections in the HTML.
+  .section-eyebrow — small uppercase label above each heading.
+  .fade-in / .visible — scroll-triggered animation (observer wired in main.js). */
+ .section {
+   max-width: 860px;
+   margin: 0 auto;
+   padding: 5rem 2rem;
+ }
+
+ .section-sm { max-width: 680px; }
+
+ .section-eyebrow {
+   font-size: 11px;
+   font-weight: 600;
+   letter-spacing: 0.2em;
+   text-transform: uppercase;
+   color: var(--green-mid);
+   margin-bottom: 1rem;
+ }
+
+ .section-eyebrow.heat { color: var(--heat-red); }
+
+ h2 {
+   font-family: var(--serif);
+   font-size: clamp(2rem, 4vw, 3rem);
+   line-height: 1.15;
+   margin-bottom: 1.5rem;
+ }
+
+ p { margin-bottom: 1.25rem; color: var(--ink); }
+ p:last-child { margin-bottom: 0; }
+
+ .lead {
+   font-size: 1.2rem;
+   line-height: 1.65;
+   color: var(--muted);
+   font-weight: 300;
+ }
+
+ /* ── DIVIDERS ── */
+ .rule { border: none; border-top: 1px solid var(--rule); margin: 0; }
+
+ /* ── STAT CALLOUTS ─────────────────────────────────────────────────────────
+  Used in Section 1 (canopy compare cards) and Section 3 (ranked strip stats).
+  Referenced in shades_of_inequality.html as .stat-strip, .stat-card. */
+ .stat-strip {
+   display: grid;
+   grid-template-columns: repeat(3, 1fr);
+   gap: 1px;
+   background: var(--rule);
+   border: 1px solid var(--rule);
+   border-radius: 12px;
+   overflow: hidden;
+   margin: 3rem 0;
+ }
+
+ .stat-item { background: #fff; padding: 1.75rem 1.5rem; }
+
+ .stat-num {
+   font-family: var(--serif);
+   font-size: 2.6rem;
+   line-height: 1;
+   margin-bottom: 0.4rem;
+ }
+
+ .stat-num.green { color: var(--green-mid); }
+ .stat-num.red   { color: var(--heat-red); }
+ .stat-desc { font-size: 13px; color: var(--muted); line-height: 1.4; }
+
+ /* ── CHART CONTAINERS ──────────────────────────────────────────────────────
+  Wraps the Chart.js canvas in Section 4 (Observatory Hill vs Penrith temps).
+  The canvas itself (#tempChart) is sized by Chart.js; this controls the outer layout. */
+ .chart-wrap {
+   background: var(--sand);
+   border-radius: 16px;
+   padding: 2.5rem 2rem;
+   margin: 2.5rem 0;
+ }
+
+ .chart-title { font-family: var(--serif); font-size: 1.3rem; margin-bottom: 0.4rem; }
+ .chart-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.4; }
+ .chart-legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 1rem; font-size: 12px; color: var(--muted); }
+ .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+ /* ── PULLQUOTE ── */
+ .pullquote {
+   border-left: 3px solid var(--green-mid);
+   padding: 1rem 1.5rem;
+   margin: 2.5rem 0;
+   background: var(--green-pale);
+   border-radius: 0 8px 8px 0;
+ }
+ .pullquote p { font-family: var(--serif); font-size: 1.3rem; line-height: 1.5; color: var(--green-dark); margin: 0; }
+
+ /* ── TEMP COMPARISON ── */
+ .temp-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2.5rem 0; }
+ .temp-card { border-radius: 14px; padding: 1.75rem; }
+ .temp-card.cool { background: var(--green-pale); }
+ .temp-card.hot  { background: var(--heat-pale); }
+ .temp-card-label { font-size: 11px; font-weight: 600; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 0.5rem; }
+ .temp-card.cool .temp-card-label { color: var(--green-mid); }
+ .temp-card.hot  .temp-card-label { color: var(--heat-red); }
+ .temp-card-lga { font-family: var(--serif); font-size: 1.5rem; line-height: 1.2; margin-bottom: 1rem; }
+ .temp-card.cool .temp-card-lga { color: var(--green-dark); }
+ .temp-card.hot  .temp-card-lga { color: #5a1a00; }
+ .temp-big { font-family: var(--serif); font-size: 3.5rem; line-height: 1; }
+ .temp-card.cool .temp-big { color: var(--green-mid); }
+ .temp-card.hot  .temp-big { color: var(--heat-red); }
+ .temp-sub { font-size: 13px; margin-top: 4px; }
+ .temp-card.cool .temp-sub { color: #3d6b50; }
+ .temp-card.hot  .temp-sub { color: #7a3010; }
+ .temp-days { margin-top: 1rem; font-size: 14px; }
+ .temp-days strong { display: block; font-size: 1.5rem; font-family: var(--serif); }
+
+ /* ── CONCLUSION ── */
+ .conclusion { background: var(--green-dark); padding: 6rem 2rem; text-align: center; color: #fff; }
+ .conclusion h2 { color: #fff; max-width: 18ch; margin: 0 auto 1.5rem; }
+ .conclusion p { color: rgba(255,255,255,0.88); max-width: 58ch; margin: 0 auto 1.25rem; font-weight: 400; font-size: 1.1rem; }
+
+ /* ── FADE-IN ANIMATION ─────────────────────────────────────────────────────
+  .fade-in starts invisible (opacity:0, translateY(28px)).
+  main.js IntersectionObserver adds .visible when the element enters viewport.
+  Stagger delays (.delay-1, .delay-2, .delay-3) cascade headings and body text. */
+ .fade-in { opacity: 0; transform: translateY(28px); transition: opacity 0.75s ease, transform 0.75s ease; }
+ .fade-in.visible { opacity: 1; transform: none; }
+ .fade-in.delay-1 { transition-delay: 0.1s; }
+ .fade-in.delay-2 { transition-delay: 0.2s; }
+ .fade-in.delay-3 { transition-delay: 0.35s; }
+
+ /* ── MAP TAB TOGGLES ───────────────────────────────────────────────────────
+  Styles for the Canopy / Heat risk / Wealth buttons above the LGA map (Section 2)
+  and the 2019 / 2022 / Target buttons above the simulator map (Section 5).
+  Active state is set programmatically in main.js via style.background. */
+ .map-tab { transition: background 0.2s, color 0.2s; }
+ .map-tab:hover { opacity: 0.85; }
+
+ @media (max-width: 900px) {
+   /* Tablet: collapse 2-col grids */
+   .canopy-compare { flex-direction: column; }
+ }
+ @media (max-width: 768px) {
+   /* Tablet portrait: tighten spacing */
+   .section { padding: 3rem 1.25rem; }
+   .hero h1 { font-size: clamp(2.8rem, 8vw, 5rem); }
+   .hero-hook { font-size: clamp(1rem, 3.5vw, 1.35rem); }
+   /* Stack simulator grid */
+   #lgaSimMap ~ *, [style*="grid-template-columns:1fr 300px"] {
+     grid-template-columns: 1fr !important;
+   }
+   /* Stack budget grid */
+   [style*="grid-template-columns:1fr 1fr"] {
+     grid-template-columns: 1fr !important;
+   }
+   /* Stack benchmark stats */
+   [style*="grid-template-columns:repeat(4,1fr)"] {
+     grid-template-columns: 1fr 1fr !important;
+   }
+ }
+ @media (max-width: 600px) {
+   .stat-strip { grid-template-columns: 1fr; }
+   .temp-cards { grid-template-columns: 1fr; }
+   .canopy-compare { flex-direction: column; }
+   .section { padding: 2.5rem 1rem; }
+   #lgaMapSearch { width: 100% !important; }
+   [style*="grid-template-columns:repeat(4,1fr)"] {
+     grid-template-columns: 1fr 1fr !important;
+   }
+   .hero { min-height: 70vh; padding: 2rem 1.25rem 2.5rem; }
+   /* Footer: stack columns on mobile */
+   footer [style*="grid-template-columns:1fr 1fr 1fr"] {
+     grid-template-columns: 1fr !important;
+   }
+ }
+ @media (max-width: 768px) {
+   /* Footer 2-col on tablet */
+   footer [style*="grid-template-columns:1fr 1fr 1fr"] {
+     grid-template-columns: 1fr 1fr !important;
+   }
+ }
+
+ /* Fix Leaflet tile visibility — prevent plus-lighter blending on multiple layers */
+ .leaflet-container img.leaflet-tile {
+   mix-blend-mode: normal !important;
+ }
+ /* Simulator map dark theme */
+ #simMap .leaflet-container {
+   background: #1a2e1f;
+ }
+
+ /* Push Leaflet zoom control below the overlaid search bar */
+ #simMap .leaflet-top.leaflet-left { top: 56px; }
+ #lgaSimMap .leaflet-top.leaflet-left { top: 56px; }
+ /* Ensure search dropdown appears above Leaflet */
+ #searchDropdown { z-index: 2000 !important; }
+
+/* ── BUDGET CALCULATOR CUSTOM SELECT (Section 6) ───────────────────────────
+  Overrides default browser <select> appearance for the LGA dropdown
+  in the budget estimator. Uses appearance:none + custom SVG chevron arrow. */
+#budgetLgaSelect:hover {
+ border-color: var(--green-dark);
+ box-shadow: 0 3px 12px rgba(45,106,79,0.18);
+}
+#budgetLgaSelect:focus {
+ border-color: var(--green-dark);
+ box-shadow: 0 0 0 3px rgba(82,183,136,0.2);
+}
+#budgetLgaSelect option {
+ background: #fff;
+ color: var(--green-dark);
+ font-weight: 500;
+ padding: 6px;
+}
+
+/* ── ITERATION 2 USABILITY FIXES ───────────────────────────────────────────
+  All styles below were added after usability testing (5 participants, DECO3100).
+  Each fix addresses a specific scored issue from the evaluation spreadsheet. */
+
+/* FIX: Hero text legibility (avg score 2.8/5) — text-shadow added to hero typography
+  so headings stay readable even if bgimage.jpg has a bright area behind the text. */
+.hero h1, .hero p, .hero .hero-eyebrow {
+ text-shadow: 0 1px 8px rgba(0,0,0,0.55);
+}
+.section-eyebrow {
+ letter-spacing: 0.14em;
+}
+
+/* FIX: Selected LGA boundary highlight (Issue 2 — users couldn't tell which LGA
+  they had selected). .leaflet-selected-lga is added by main.js via layer.getElement()
+  after a click; the pulse fires 3 times then stops so it's noticeable but not distracting. */
+@keyframes lgaPulse {
+ 0%   { stroke-opacity: 1; stroke-width: 3; }
+ 50%  { stroke-opacity: 0.4; stroke-width: 5; }
+ 100% { stroke-opacity: 1; stroke-width: 3; }
+}
+.leaflet-selected-lga {
+ animation: lgaPulse 1.8s ease-in-out 3;
+}
+
+/* FIX: Slider affordance (Issue 3 — slider "doesn't look like a slide bar").
+  Enlarges the thumb handle to 22px with a green border and grab cursor.
+  Works cross-browser via -webkit- and -moz- vendor prefixes. */
+input[type=range] {
+ height: 6px;
+ border-radius: 3px;
+}
+input[type=range]::-webkit-slider-thumb {
+ width: 22px;
+ height: 22px;
+ border: 3px solid #52b788;
+ border-radius: 50%;
+ background: #fff;
+ cursor: grab;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+input[type=range]:active::-webkit-slider-thumb {
+ cursor: grabbing;
+ transform: scale(1.15);
+}
+input[type=range]::-moz-range-thumb {
+ width: 22px;
+ height: 22px;
+ border: 3px solid #52b788;
+ border-radius: 50%;
+ background: #fff;
+ cursor: grab;
+ box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+}
+
+/* FIX: Temporal context (Issue 3 — Target mode felt disconnected from a real
+  future year). #simFutureBadge floats inside the simulator map; main.js toggles
+  .visible on it when the Target tab is active, showing "Projected 20XX · all LGAs ≥ X%". */
+#simFutureBadge {
+ display: none;
+ position: absolute;
+ top: 56px;
+ left: 50%;
+ transform: translateX(-50%);
+ background: #0f2a1a;
+ border: 1.5px solid #52b788;
+ border-radius: 20px;
+ padding: 6px 18px;
+ font-size: 11px;
+ color: #52b788;
+ letter-spacing: 0.1em;
+ text-transform: uppercase;
+ font-weight: 700;
+ pointer-events: none;
+ z-index: 1001;
+ white-space: nowrap;
+ box-shadow: 0 2px 14px rgba(0,0,0,0.5);
+}
+#simFutureBadge.visible { display: block; }
+
+/* FIX: Second map discoverability (Issue 4 — users missed the simulator at the bottom).
+  .sim-discovery-prompt is injected after the Section 2 attribution line in the HTML.
+  Bounces gently to draw the eye downward after the LGA map. */
+.sim-discovery-prompt {
+ text-align: center;
+ padding: 1.5rem 0 0.5rem;
+ color: rgba(255,255,255,0.35);
+ font-size: 13px;
+ letter-spacing: 0.05em;
+ animation: bounceDown 2s ease-in-out infinite;
+}
+@keyframes bounceDown {
+ 0%, 100% { transform: translateY(0); opacity: 0.35; }
+ 50%       { transform: translateY(5px); opacity: 0.65; }
+}
+
+/* FIX: Navigation clarity (avg score 2.6/5 — users unsure where to scroll next).
+  #scrollProgress is a fixed right-side nav showing one dot per major section.
+  main.js updateDots() highlights the active dot based on scroll position. */
+#scrollProgress {
+ position: fixed;
+ right: 18px;
+ top: 50%;
+ transform: translateY(-50%);
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ z-index: 9000;
+ pointer-events: none;
+ background: rgba(0,0,0,0.18);
+ backdrop-filter: blur(4px);
+ padding: 10px 7px;
+ border-radius: 20px;
+}
+#scrollProgress .sp-dot {
+ width: 7px;
+ height: 7px;
+ border-radius: 50%;
+ background: rgba(255,255,255,0.35);
+ border: 1.5px solid rgba(255,255,255,0.5);
+ transition: background 0.3s, transform 0.3s;
+}
+#scrollProgress .sp-dot.active {
+ background: #52b788;
+ border-color: #52b788;
+ transform: scale(1.4);
+}
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-pane > svg,
+.leaflet-pane > canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+	position: absolute;
+	left: 0;
+	top: 0;
+	}
+.leaflet-container {
+	overflow: hidden;
+	}
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	-webkit-user-select: none;
+	   -moz-user-select: none;
+	        user-select: none;
+	  -webkit-user-drag: none;
+	}
+/* Prevents IE11 from highlighting tiles in blue */
+.leaflet-tile::selection {
+	background: transparent;
+}
+/* Safari renders non-retina tile on retina better with this, but Chrome is worse */
+.leaflet-safari .leaflet-tile {
+	image-rendering: -webkit-optimize-contrast;
+	}
+/* hack that prevents hw layers "stretching" when loading new tiles */
+.leaflet-safari .leaflet-tile-container {
+	width: 1600px;
+	height: 1600px;
+	-webkit-transform-origin: 0 0;
+	}
+.leaflet-marker-icon,
+.leaflet-marker-shadow {
+	display: block;
+	}
+/* .leaflet-container svg: reset svg max-width decleration shipped in Joomla! (joomla.org) 3.x */
+/* .leaflet-container img: map is broken in FF if you have max-width: 100% on tiles */
+.leaflet-container .leaflet-overlay-pane svg {
+	max-width: none !important;
+	max-height: none !important;
+	}
+.leaflet-container .leaflet-marker-pane img,
+.leaflet-container .leaflet-shadow-pane img,
+.leaflet-container .leaflet-tile-pane img,
+.leaflet-container img.leaflet-image-layer,
+.leaflet-container .leaflet-tile {
+	max-width: none !important;
+	max-height: none !important;
+	width: auto;
+	padding: 0;
+	}
+
+.leaflet-container img.leaflet-tile {
+	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
+	mix-blend-mode: plus-lighter;
+}
+
+.leaflet-container.leaflet-touch-zoom {
+	-ms-touch-action: pan-x pan-y;
+	touch-action: pan-x pan-y;
+	}
+.leaflet-container.leaflet-touch-drag {
+	-ms-touch-action: pinch-zoom;
+	/* Fallback for FF which doesn't support pinch-zoom */
+	touch-action: none;
+	touch-action: pinch-zoom;
+}
+.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom {
+	-ms-touch-action: none;
+	touch-action: none;
+}
+.leaflet-container {
+	-webkit-tap-highlight-color: transparent;
+}
+.leaflet-container a {
+	-webkit-tap-highlight-color: rgba(51, 181, 229, 0.4);
+}
+.leaflet-tile {
+	filter: inherit;
+	visibility: hidden;
+	}
+.leaflet-tile-loaded {
+	visibility: inherit;
+	}
+.leaflet-zoom-box {
+	width: 0;
+	height: 0;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	z-index: 800;
+	}
+/* workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=888319 */
+.leaflet-overlay-pane svg {
+	-moz-user-select: none;
+	}
+
+.leaflet-pane         { z-index: 400; }
+
+.leaflet-tile-pane    { z-index: 200; }
+.leaflet-overlay-pane { z-index: 400; }
+.leaflet-shadow-pane  { z-index: 500; }
+.leaflet-marker-pane  { z-index: 600; }
+.leaflet-tooltip-pane   { z-index: 650; }
+.leaflet-popup-pane   { z-index: 700; }
+
+.leaflet-map-pane canvas { z-index: 100; }
+.leaflet-map-pane svg    { z-index: 200; }
+
+.leaflet-vml-shape {
+	width: 1px;
+	height: 1px;
+	}
+.lvml {
+	behavior: url(#default#VML);
+	display: inline-block;
+	position: absolute;
+	}
+
+
+/* control positioning */
+
+.leaflet-control {
+	position: relative;
+	z-index: 800;
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+.leaflet-top,
+.leaflet-bottom {
+	position: absolute;
+	z-index: 1000;
+	pointer-events: none;
+	}
+.leaflet-top {
+	top: 0;
+	}
+.leaflet-right {
+	right: 0;
+	}
+.leaflet-bottom {
+	bottom: 0;
+	}
+.leaflet-left {
+	left: 0;
+	}
+.leaflet-control {
+	float: left;
+	clear: both;
+	}
+.leaflet-right .leaflet-control {
+	float: right;
+	}
+.leaflet-top .leaflet-control {
+	margin-top: 10px;
+	}
+.leaflet-bottom .leaflet-control {
+	margin-bottom: 10px;
+	}
+.leaflet-left .leaflet-control {
+	margin-left: 10px;
+	}
+.leaflet-right .leaflet-control {
+	margin-right: 10px;
+	}
+
+
+/* zoom and fade animations */
+
+.leaflet-fade-anim .leaflet-popup {
+	opacity: 0;
+	-webkit-transition: opacity 0.2s linear;
+	   -moz-transition: opacity 0.2s linear;
+	        transition: opacity 0.2s linear;
+	}
+.leaflet-fade-anim .leaflet-map-pane .leaflet-popup {
+	opacity: 1;
+	}
+.leaflet-zoom-animated {
+	-webkit-transform-origin: 0 0;
+	    -ms-transform-origin: 0 0;
+	        transform-origin: 0 0;
+	}
+svg.leaflet-zoom-animated {
+	will-change: transform;
+}
+
+.leaflet-zoom-anim .leaflet-zoom-animated {
+	-webkit-transition: -webkit-transform 0.25s cubic-bezier(0,0,0.25,1);
+	   -moz-transition:    -moz-transform 0.25s cubic-bezier(0,0,0.25,1);
+	        transition:         transform 0.25s cubic-bezier(0,0,0.25,1);
+	}
+.leaflet-zoom-anim .leaflet-tile,
+.leaflet-pan-anim .leaflet-tile {
+	-webkit-transition: none;
+	   -moz-transition: none;
+	        transition: none;
+	}
+
+.leaflet-zoom-anim .leaflet-zoom-hide {
+	visibility: hidden;
+	}
+
+
+/* cursors */
+
+.leaflet-interactive {
+	cursor: pointer;
+	}
+.leaflet-grab {
+	cursor: -webkit-grab;
+	cursor:    -moz-grab;
+	cursor:         grab;
+	}
+.leaflet-crosshair,
+.leaflet-crosshair .leaflet-interactive {
+	cursor: crosshair;
+	}
+.leaflet-popup-pane,
+.leaflet-control {
+	cursor: auto;
+	}
+.leaflet-dragging .leaflet-grab,
+.leaflet-dragging .leaflet-grab .leaflet-interactive,
+.leaflet-dragging .leaflet-marker-draggable {
+	cursor: move;
+	cursor: -webkit-grabbing;
+	cursor:    -moz-grabbing;
+	cursor:         grabbing;
+	}
+
+/* marker & overlays interactivity */
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-image-layer,
+.leaflet-pane > svg path,
+.leaflet-tile-container {
+	pointer-events: none;
+	}
+
+.leaflet-marker-icon.leaflet-interactive,
+.leaflet-image-layer.leaflet-interactive,
+.leaflet-pane > svg path.leaflet-interactive,
+svg.leaflet-image-layer.leaflet-interactive path {
+	pointer-events: visiblePainted; /* IE 9-10 doesn't have auto */
+	pointer-events: auto;
+	}
+
+/* visual tweaks */
+
+.leaflet-container {
+	background: #ddd;
+	outline-offset: 1px;
+	}
+.leaflet-container a {
+	color: #0078A8;
+	}
+.leaflet-zoom-box {
+	border: 2px dotted #38f;
+	background: rgba(255,255,255,0.5);
+	}
+
+
+/* general typography */
+.leaflet-container {
+	font-family: "Helvetica Neue", Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	font-size: 0.75rem;
+	line-height: 1.5;
+	}
+
+
+/* general toolbar styles */
+
+.leaflet-bar {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.65);
+	border-radius: 4px;
+	}
+.leaflet-bar a {
+	background-color: #fff;
+	border-bottom: 1px solid #ccc;
+	width: 26px;
+	height: 26px;
+	line-height: 26px;
+	display: block;
+	text-align: center;
+	text-decoration: none;
+	color: black;
+	}
+.leaflet-bar a,
+.leaflet-control-layers-toggle {
+	background-position: 50% 50%;
+	background-repeat: no-repeat;
+	display: block;
+	}
+.leaflet-bar a:hover,
+.leaflet-bar a:focus {
+	background-color: #f4f4f4;
+	}
+.leaflet-bar a:first-child {
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+	}
+.leaflet-bar a:last-child {
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+	border-bottom: none;
+	}
+.leaflet-bar a.leaflet-disabled {
+	cursor: default;
+	background-color: #f4f4f4;
+	color: #bbb;
+	}
+
+.leaflet-touch .leaflet-bar a {
+	width: 30px;
+	height: 30px;
+	line-height: 30px;
+	}
+.leaflet-touch .leaflet-bar a:first-child {
+	border-top-left-radius: 2px;
+	border-top-right-radius: 2px;
+	}
+.leaflet-touch .leaflet-bar a:last-child {
+	border-bottom-left-radius: 2px;
+	border-bottom-right-radius: 2px;
+	}
+
+/* zoom control */
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+	font: bold 18px 'Lucida Console', Monaco, monospace;
+	text-indent: 1px;
+	}
+
+.leaflet-touch .leaflet-control-zoom-in, .leaflet-touch .leaflet-control-zoom-out  {
+	font-size: 22px;
+	}
+
+
+/* layers control */
+
+.leaflet-control-layers {
+	box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+	background: #fff;
+	border-radius: 5px;
+	}
+.leaflet-control-layers-toggle {
+	background-image: url(images/layers.png);
+	width: 36px;
+	height: 36px;
+	}
+.leaflet-retina .leaflet-control-layers-toggle {
+	background-image: url(images/layers-2x.png);
+	background-size: 26px 26px;
+	}
+.leaflet-touch .leaflet-control-layers-toggle {
+	width: 44px;
+	height: 44px;
+	}
+.leaflet-control-layers .leaflet-control-layers-list,
+.leaflet-control-layers-expanded .leaflet-control-layers-toggle {
+	display: none;
+	}
+.leaflet-control-layers-expanded .leaflet-control-layers-list {
+	display: block;
+	position: relative;
+	}
+.leaflet-control-layers-expanded {
+	padding: 6px 10px 6px 6px;
+	color: #333;
+	background: #fff;
+	}
+.leaflet-control-layers-scrollbar {
+	overflow-y: scroll;
+	overflow-x: hidden;
+	padding-right: 5px;
+	}
+.leaflet-control-layers-selector {
+	margin-top: 2px;
+	position: relative;
+	top: 1px;
+	}
+.leaflet-control-layers label {
+	display: block;
+	font-size: 13px;
+	font-size: 1.08333em;
+	}
+.leaflet-control-layers-separator {
+	height: 0;
+	border-top: 1px solid #ddd;
+	margin: 5px -10px 5px -6px;
+	}
+
+/* Default icon URLs */
+.leaflet-default-icon-path { /* used only in path-guessing heuristic, see L.Icon.Default */
+	background-image: url(images/marker-icon.png);
+	}
+
+
+/* attribution and scale controls */
+
+.leaflet-container .leaflet-control-attribution {
+	background: #fff;
+	background: rgba(255, 255, 255, 0.8);
+	margin: 0;
+	}
+.leaflet-control-attribution,
+.leaflet-control-scale-line {
+	padding: 0 5px;
+	color: #333;
+	line-height: 1.4;
+	}
+.leaflet-control-attribution a {
+	text-decoration: none;
+	}
+.leaflet-control-attribution a:hover,
+.leaflet-control-attribution a:focus {
+	text-decoration: underline;
+	}
+.leaflet-attribution-flag {
+	display: inline !important;
+	vertical-align: baseline !important;
+	width: 1em;
+	height: 0.6669em;
+	}
+.leaflet-left .leaflet-control-scale {
+	margin-left: 5px;
+	}
+.leaflet-bottom .leaflet-control-scale {
+	margin-bottom: 5px;
+	}
+.leaflet-control-scale-line {
+	border: 2px solid #777;
+	border-top: none;
+	line-height: 1.1;
+	padding: 2px 5px 1px;
+	white-space: nowrap;
+	-moz-box-sizing: border-box;
+	     box-sizing: border-box;
+	background: rgba(255, 255, 255, 0.8);
+	text-shadow: 1px 1px #fff;
+	}
+.leaflet-control-scale-line:not(:first-child) {
+	border-top: 2px solid #777;
+	border-bottom: none;
+	margin-top: -2px;
+	}
+.leaflet-control-scale-line:not(:first-child):not(:last-child) {
+	border-bottom: 2px solid #777;
+	}
+
+.leaflet-touch .leaflet-control-attribution,
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	box-shadow: none;
+	}
+.leaflet-touch .leaflet-control-layers,
+.leaflet-touch .leaflet-bar {
+	border: 2px solid rgba(0,0,0,0.2);
+	background-clip: padding-box;
+	}
+
+
+/* popup */
+
+.leaflet-popup {
+	position: absolute;
+	text-align: center;
+	margin-bottom: 20px;
+	}
+.leaflet-popup-content-wrapper {
+	padding: 1px;
+	text-align: left;
+	border-radius: 12px;
+	}
+.leaflet-popup-content {
+	margin: 13px 24px 13px 20px;
+	line-height: 1.3;
+	font-size: 13px;
+	font-size: 1.08333em;
+	min-height: 1px;
+	}
+.leaflet-popup-content p {
+	margin: 17px 0;
+	margin: 1.3em 0;
+	}
+.leaflet-popup-tip-container {
+	width: 40px;
+	height: 20px;
+	position: absolute;
+	left: 50%;
+	margin-top: -1px;
+	margin-left: -20px;
+	overflow: hidden;
+	pointer-events: none;
+	}
+.leaflet-popup-tip {
+	width: 17px;
+	height: 17px;
+	padding: 1px;
+
+	margin: -10px auto 0;
+	pointer-events: auto;
+
+	-webkit-transform: rotate(45deg);
+	   -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	        transform: rotate(45deg);
+	}
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+	background: white;
+	color: #333;
+	box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+	}
+.leaflet-container a.leaflet-popup-close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	border: none;
+	text-align: center;
+	width: 24px;
+	height: 24px;
+	font: 16px/24px Tahoma, Verdana, sans-serif;
+	color: #757575;
+	text-decoration: none;
+	background: transparent;
+	}
+.leaflet-container a.leaflet-popup-close-button:hover,
+.leaflet-container a.leaflet-popup-close-button:focus {
+	color: #585858;
+	}
+.leaflet-popup-scrolled {
+	overflow: auto;
+	}
+
+.leaflet-oldie .leaflet-popup-content-wrapper {
+	-ms-zoom: 1;
+	}
+.leaflet-oldie .leaflet-popup-tip {
+	width: 24px;
+	margin: 0 auto;
+
+	-ms-filter: "progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678)";
+	filter: progid:DXImageTransform.Microsoft.Matrix(M11=0.70710678, M12=0.70710678, M21=-0.70710678, M22=0.70710678);
+	}
+
+.leaflet-oldie .leaflet-control-zoom,
+.leaflet-oldie .leaflet-control-layers,
+.leaflet-oldie .leaflet-popup-content-wrapper,
+.leaflet-oldie .leaflet-popup-tip {
+	border: 1px solid #999;
+	}
+
+
+/* div icon */
+
+.leaflet-div-icon {
+	background: #fff;
+	border: 1px solid #666;
+	}
+
+
+/* Tooltip */
+/* Base styles for the element that has a tooltip */
+.leaflet-tooltip {
+	position: absolute;
+	padding: 6px;
+	background-color: #fff;
+	border: 1px solid #fff;
+	border-radius: 3px;
+	color: #222;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+	pointer-events: none;
+	box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+	}
+.leaflet-tooltip.leaflet-interactive {
+	cursor: pointer;
+	pointer-events: auto;
+	}
+.leaflet-tooltip-top:before,
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	position: absolute;
+	pointer-events: none;
+	border: 6px solid transparent;
+	background: transparent;
+	content: "";
+	}
+
+/* Directions */
+
+.leaflet-tooltip-bottom {
+	margin-top: 6px;
+}
+.leaflet-tooltip-top {
+	margin-top: -6px;
+}
+.leaflet-tooltip-bottom:before,
+.leaflet-tooltip-top:before {
+	left: 50%;
+	margin-left: -6px;
+	}
+.leaflet-tooltip-top:before {
+	bottom: 0;
+	margin-bottom: -12px;
+	border-top-color: #fff;
+	}
+.leaflet-tooltip-bottom:before {
+	top: 0;
+	margin-top: -12px;
+	margin-left: -6px;
+	border-bottom-color: #fff;
+	}
+.leaflet-tooltip-left {
+	margin-left: -6px;
+}
+.leaflet-tooltip-right {
+	margin-left: 6px;
+}
+.leaflet-tooltip-left:before,
+.leaflet-tooltip-right:before {
+	top: 50%;
+	margin-top: -6px;
+	}
+.leaflet-tooltip-left:before {
+	right: 0;
+	margin-right: -12px;
+	border-left-color: #fff;
+	}
+.leaflet-tooltip-right:before {
+	left: 0;
+	margin-left: -12px;
+	border-right-color: #fff;
+	}
+
+/* Printing */
+
+@media print {
+	/* Prevent printers from removing background-images of controls. */
+	.leaflet-control {
+		-webkit-print-color-adjust: exact;
+		print-color-adjust: exact;
+		}
+	}
